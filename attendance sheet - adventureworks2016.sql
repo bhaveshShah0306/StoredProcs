@@ -1,3 +1,5 @@
+use AdventureWorksDW2016
+
 -- Set date parameters - now supporting multi-year ranges
 DECLARE @StartDate DATE = '2007-01-01';
 DECLARE @EndDate DATE = '2009-12-31';
@@ -36,17 +38,22 @@ BEGIN
         [Nov] NVARCHAR(10),
         [Dec] NVARCHAR(10)
     );
-    
+
+	    
     -- Insert the report title as the first row
     INSERT INTO #CurrentYearResults (Title, FullName, [Jan], [Feb], [Mar], [Apr], [May], [Jun], [Jul], [Aug], [Sep], [Oct], [Nov], [Dec])
     VALUES ('Attendance Report for Year: ' + CAST(@CurrentYear AS NVARCHAR(4)), NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     
     -- Get titles with ranking and employee data for the current year only
-    WITH TitleGroups AS (
+    WITH CleanTitles AS (
+    SELECT DISTINCT UPPER(TRIM(Title)) as Title
+    FROM DimEmployee
+	),	
+	TitleGroups AS (
         SELECT DISTINCT 
             Title,
             ROW_NUMBER() OVER (ORDER BY Title) AS TitleRank
-        FROM DimEmployee
+        FROM CleanTitles
     ),
     EmployeeRanks AS (
         SELECT 
